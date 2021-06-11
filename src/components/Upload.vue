@@ -1,26 +1,32 @@
 <template>
     <div name="upload">
+        <div name="start" v-if="this.warmStatus[this.warmStatus.length - 1] != 1">
         <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)
         </button>
-        <p v-if="this.warmStatus[this.warmStatus.length - 1]== 9"> AI が眠っているようです。再度、診断開始ボタンを押してください。数分かかる場合があります。
-
-        <div name="button" v-if="this.warmStatus[this.warmStatus.length - 2] == 9">
-           <p> お待たせしました。<br> </p>
         </div>
+        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI が眠っているようです。再度、診断開始ボタンを押してください。数分かかる場合があります。
+        </p>
         <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
-           <p> あなたの画像をアップロードしてください。<br> </p>
-           <p>{{judgeStatus}}</p>
-           <input  v-on:change="onFileChange" type="file" name="file" placeholder="Photo from your computer" accept="image/*" required>
-           <button v-on:click="uploadImage"> Upload </button>
+        <p> あなたの画像をアップロードしてください。<br> </p>
+        <input  v-on:change="onFileChange" type="file" name="file" placeholder="Photo from your computer" accept="image/*" required>
+        <button v-on:click="uploadImage"> Upload </button>
         </div>
+        <Modal :judgeStatus = this.judgeStatus :judgeResult = this.judgeResult>
+        </Modal>
+        <!--
+            <modal name="result-modal" :draggable="true" :resizable="true" width="85%" height="70%">
+        </modal>
+        -->
+
+
     </div>
 </template>
 
 <script>
-
 import axios from 'axios';
 import {postTarget} from '../util';
 import {targetURL} from '../config';
+import Modal from './Modal'
 
 export default {
     data: function() {
@@ -28,6 +34,7 @@ export default {
             uploadFile: null,
             warmStatus: [0],
             judgeStatus: "審査前",
+            judgeResult: null,
             urls: {
                 upload_url: targetURL.upload_url,
                 preprocess_url: targetURL.preprocess_url,
@@ -36,8 +43,13 @@ export default {
         }
     },
     methods: {
+        show: function() {
+            this.$modal.show('result-modal');
+        },
+        hide: function() {
+            this.$modal.hide('result-modal');
+        },
         warmupLambda: async function() {
-
         // バックエンドのlambdaのコンテナを起動させる
         // ライブラリの読み込みに時間のかかる、preprocess/ predictionを対象とする
         // が、しかし、predictionのインポートはやはり遅く、503(API gateway <-> lambdaのタイムアウト)が発生する
@@ -47,17 +59,22 @@ export default {
             let preprocessHttpStatusCd = null;
             let predictionHttpStatusCd = null;
 
-            preprocessHttpStatusCd = await postTarget(self.urls.preprocess_url)
-            predictionHttpStatusCd = await postTarget(self.urls.prediction_url)
+            await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
+                values => {
+                    preprocessHttpStatusCd = values[0];
+                    predictionHttpStatusCd = values[1];
+                }
+            )
 
-            // console.log('predictionHttpStatusCd', predictionHttpStatusCd)
+            console.log('predictionHttpStatusCd', predictionHttpStatusCd)
             // console.log('preprocessHttpStatusCd', preprocessHttpStatusCd)
 
-            if (preprocessHttpStatusCd === 503 || predictionHttpStatusCd === 503) {
+            // timeoutが発生した場合、warmStatusに9を格納
+            if (preprocessHttpStatusCd === 503 || predictionHttpStatusCd === 503 || predictionHttpStatusCd === 500) {
                 self.warmStatus.push(9);
                 console.log(self.warmStatus[self.warmStatus.length - 1])
             }
-
+            // lambdaのコンテナが立ち上がった時、warmStatusに1を格納
             if (preprocessHttpStatusCd === 201 && predictionHttpStatusCd === 201) {
                 self.warmStatus.push(1);
             }
@@ -72,6 +89,10 @@ export default {
             let self = this
             const targetFile = self.uploadFile;
             const upload_url = self.urls.upload_url;
+
+            // modalオープン
+            self.show();
+
             axios.post(upload_url, targetFile, {
                 headers: {
                     "Content-Type": targetFile.type
@@ -98,12 +119,22 @@ export default {
                     "Content-Type": 'application/json'
                     }}).then(function(res) {
                         console.log(res);
+                        if(res.status === 200) {
+                            self.judgeStatus = "審査が完了しました";
+                            const judgeResult = JSON.parse(JSON.stringify(res.data));
+                            self.judgeResult = judgeResult.predicted_group;
+                        }
                     });
                 }
             });
         }
     }
-            )}}}
+            )}
+        },
+    components: {
+        Modal
+    }
+}
 </script>
 
 <style >
