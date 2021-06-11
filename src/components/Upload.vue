@@ -13,12 +13,6 @@
         </div>
         <Modal :judgeStatus = this.judgeStatus :judgeResult = this.judgeResult>
         </Modal>
-        <!--
-            <modal name="result-modal" :draggable="true" :resizable="true" width="85%" height="70%">
-        </modal>
-        -->
-
-
     </div>
 </template>
 
@@ -43,11 +37,18 @@ export default {
         }
     },
     methods: {
+        // modal出力
         show: function() {
             this.$modal.show('result-modal');
         },
+        // modal閉じる
         hide: function() {
             this.$modal.hide('result-modal');
+        },
+        // dataの値のリセット
+        reset: function() {
+            this.judgeStatus = "審査前",
+            this.judgeResult = null
         },
         warmupLambda: async function() {
         // バックエンドのlambdaのコンテナを起動させる
@@ -58,7 +59,7 @@ export default {
             let self = this;
             let preprocessHttpStatusCd = null;
             let predictionHttpStatusCd = null;
-
+            // preprocess, prediction 二つのリクエスト同時に非同期で実行する
             await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
                 values => {
                     preprocessHttpStatusCd = values[0];
@@ -66,7 +67,7 @@ export default {
                 }
             )
 
-            console.log('predictionHttpStatusCd', predictionHttpStatusCd)
+            //console.log('predictionHttpStatusCd', predictionHttpStatusCd)
             // console.log('preprocessHttpStatusCd', preprocessHttpStatusCd)
 
             // timeoutが発生した場合、warmStatusに9を格納
@@ -89,7 +90,8 @@ export default {
             let self = this
             const targetFile = self.uploadFile;
             const upload_url = self.urls.upload_url;
-
+            // 前回のリクエストの際の処理のdataの値をリセットする
+            self.reset()
             // modalオープン
             self.show();
 

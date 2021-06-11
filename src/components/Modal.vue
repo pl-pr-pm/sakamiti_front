@@ -9,7 +9,6 @@
 
 <script>
 import {targetURL} from '../config';
- //v-if="warmStatus[warmStatus.length - 1] == 1"
 export default {
     data: function() {
     return {
@@ -23,6 +22,5 @@ export default {
     },
     props: ['judgeStatus', 'warmStatus', 'judgeResult'],
     methods: {
-      
 }}
 </script>
