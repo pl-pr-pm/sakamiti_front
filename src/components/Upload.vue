@@ -1,11 +1,10 @@
 <template>
     <div name="upload">
         <div name="start" v-if="this.warmStatus[this.warmStatus.length - 1] != 1">
-        <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)
-        </button>
+        <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)</button>
+        <Loading :isLoading = this.isLoading> Loading </Loading>
         </div>
-        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI がまだ起動していないようです。再度、診断開始ボタンを押してください。
-        </p>
+        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI がまだ起動していないようです。再度、診断開始ボタンを押してください。</p>
         <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
         <p> あなたの画像をアップロードしてください。<br> </p>
         <input  v-on:change="onFileChange" type="file" name="file" placeholder="Photo from your computer" accept="image/*" required>
@@ -21,12 +20,14 @@ import axios from 'axios';
 import {postTarget} from '../util';
 import {targetURL} from '../config';
 import Modal from './Modal'
+import Loading from './Loading'
 
 export default {
     data: function() {
         return {
             uploadFile: null,
             warmStatus: [0],
+            isLoading: null,
             judgeStatus: "審査前",
             judgeResult: null,
             urls: {
@@ -50,6 +51,14 @@ export default {
             this.judgeStatus = "審査前",
             this.judgeResult = null
         },
+        // ロード中
+        loading: function() {
+            this.isLoading=true;
+        },
+        // ロード終了
+        loadFinish: function() {
+            this.isLoading=false;
+        },
         warmupLambda: async function() {
         // バックエンドのlambdaのコンテナを起動させる
         // ライブラリの読み込みに時間のかかる、preprocess/ predictionを対象とする
@@ -61,15 +70,19 @@ export default {
             let predictionHttpStatusCd = null;
             
             // 起動前状態を設定
-            self.warmStatus.push(0);
+            self.loading()
+            console.log('isLoading', self.isLoading);
+
             // preprocess, prediction 二つのリクエスト同時に非同期で実行する
             await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
                 values => {
                     preprocessHttpStatusCd = values[0];
                     predictionHttpStatusCd = values[1];
-                    console.log('predictionHttpStatusCd', predictionHttpStatusCd)
+                    console.log('warmStatus',this.warmStatus[this.warmStatus.length - 1] )
                 }
             )
+            self.loadFinish()
+            console.log('isLoading', self.isLoading);
 
             //console.log('predictionHttpStatusCd', predictionHttpStatusCd)
             // console.log('preprocessHttpStatusCd', preprocessHttpStatusCd)
@@ -94,6 +107,7 @@ export default {
             let self = this
             const targetFile = self.uploadFile;
             const upload_url = self.urls.upload_url;
+            
             // 前回のリクエストの際の処理のdataの値をリセットする
             self.reset()
             // modalオープン
@@ -138,7 +152,8 @@ export default {
             )}
         },
     components: {
-        Modal
+        Modal,
+        Loading
     }
 }
 </script>
