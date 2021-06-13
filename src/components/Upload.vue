@@ -4,7 +4,7 @@
         <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)
         </button>
         </div>
-        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI が眠っているようです。再度、診断開始ボタンを押してください。数分かかる場合があります。
+        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI がまだ起動していないようです。再度、診断開始ボタンを押してください。
         </p>
         <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
         <p> あなたの画像をアップロードしてください。<br> </p>
@@ -59,11 +59,15 @@ export default {
             let self = this;
             let preprocessHttpStatusCd = null;
             let predictionHttpStatusCd = null;
+            
+            // 起動前状態を設定
+            self.warmStatus.push(0);
             // preprocess, prediction 二つのリクエスト同時に非同期で実行する
             await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
                 values => {
                     preprocessHttpStatusCd = values[0];
                     predictionHttpStatusCd = values[1];
+                    console.log('predictionHttpStatusCd', predictionHttpStatusCd)
                 }
             )
 
