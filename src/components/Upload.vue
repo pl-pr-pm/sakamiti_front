@@ -2,7 +2,7 @@
     <div name="upload">
         <div name="start" v-if="this.warmStatus[this.warmStatus.length - 1] != 1">
         <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)</button>
-        <Loading :isLoading = this.isLoading> Loading </Loading>
+        <Loading :coldIsLoading = this.coldIsLoading> Loading </Loading>
         </div>
         <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI がまだ起動していないようです。再度、診断開始ボタンを押してください。</p>
         <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
@@ -10,7 +10,7 @@
         <input  v-on:change="onFileChange" type="file" name="file" placeholder="Photo from your computer" accept="image/*" required>
         <button v-on:click="uploadImage"> Upload </button>
         </div>
-        <Modal :judgeStatus = this.judgeStatus :judgeResult = this.judgeResult>
+        <Modal :judgeStatus = this.judgeStatus :judgeResult = this.judgeResult :predictionIsLoading = this.predictionIsLoading>
         </Modal>
     </div>
 </template>
@@ -27,7 +27,8 @@ export default {
         return {
             uploadFile: null,
             warmStatus: [0],
-            isLoading: null,
+            coldIsLoading: null,
+            predictionIsLoading:null,
             judgeStatus: "審査前",
             judgeResult: null,
             urls: {
@@ -51,27 +52,31 @@ export default {
             this.judgeStatus = "審査前",
             this.judgeResult = null
         },
-        // ロード中
-        loading: function() {
-            this.isLoading=true;
+
+        coldLoading: function() {
+            this.coldIsLoading=true;
         },
-        // ロード終了
-        loadFinish: function() {
-            this.isLoading=false;
+        predictionLoading: async function() {
+            this.predictionIsLoading=true;
         },
-        warmupLambda: async function() {
+        coldFinish: function() {
+            this.coldIsLoading=false;
+        },
+        predictionFinish: function() {
+            this.predictionIsLoading=false;
+        },
+
         // バックエンドのlambdaのコンテナを起動させる
         // ライブラリの読み込みに時間のかかる、preprocess/ predictionを対象とする
         // が、しかし、predictionのインポートはやはり遅く、503(API gateway <-> lambdaのタイムアウト)が発生する
         // そのため、503の場合は、再度ユーザーに操作を促す
-
+        warmupLambda: async function() {
             let self = this;
             let preprocessHttpStatusCd = null;
             let predictionHttpStatusCd = null;
             
             // 起動前状態を設定
-            self.loading()
-            console.log('isLoading', self.isLoading);
+            self.coldLoading()
 
             // preprocess, prediction 二つのリクエスト同時に非同期で実行する
             await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
@@ -81,8 +86,7 @@ export default {
                     console.log('warmStatus',this.warmStatus[this.warmStatus.length - 1] )
                 }
             )
-            self.loadFinish()
-            console.log('isLoading', self.isLoading);
+            self.coldFinish()
 
             //console.log('predictionHttpStatusCd', predictionHttpStatusCd)
             // console.log('preprocessHttpStatusCd', preprocessHttpStatusCd)
@@ -107,11 +111,15 @@ export default {
             let self = this
             const targetFile = self.uploadFile;
             const upload_url = self.urls.upload_url;
-            
+
             // 前回のリクエストの際の処理のdataの値をリセットする
             self.reset()
+
             // modalオープン
             self.show();
+
+            // ロードを開始する
+            self.predictionLoading();
 
             axios.post(upload_url, targetFile, {
                 headers: {
@@ -140,6 +148,8 @@ export default {
                     }}).then(function(res) {
                         console.log(res);
                         if(res.status === 200) {
+                            // ロードを終了する
+                            self.predictionFinish();
                             self.judgeStatus = "審査が完了しました";
                             const judgeResult = JSON.parse(JSON.stringify(res.data));
                             self.judgeResult = judgeResult.predicted_group;

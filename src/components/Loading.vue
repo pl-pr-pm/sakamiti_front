@@ -1,5 +1,6 @@
 <template>
-<div v-show="isLoading">
+<div>
+<div v-show="coldIsLoading">
     <div class="fullview">
       <div class="loading-spacer"></div>
       <vue-loading 
@@ -10,6 +11,19 @@
       </vue-loading>
     </div>
 </div>
+<div v-show="predictionIsLoading">
+    <div class="fullview">
+      <div class="loading-spacer"></div>
+      <vue-loading 
+        type="spin"
+        color="#aaa"
+        :size="{ width: '100px', height: '100px' }"
+        >
+      </vue-loading>
+    </div>
+</div>
+</div>
+
 </template>
 
 <script>
@@ -17,7 +31,7 @@ import { VueLoading } from 'vue-loading-template'
 
 export default {
   name: 'loading',
-  props:['isLoading'],
+  props:['coldIsLoading', 'predictionIsLoading'],
   components: {
     VueLoading,
   },
