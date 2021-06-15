@@ -1,10 +1,15 @@
 <template>
+  
   <div>
+    <head>
+      <link rel="stylesheet" href='css/style.css'>
+    </head>
     <explanation/>
     <upload/>
     <fotter/>
 
   </div>
+  
 </template>
 
 <script>
@@ -21,3 +26,9 @@ export default {
   },
 };
 </script>
+
+<style>
+template {
+  background-image: url(image/predict_idle_desktop.jpg);
+}
+</style>
