@@ -81,10 +81,25 @@ button:hover {
 }
 
 #judge_status {
-
+  padding: 3%;
+  text-align: left;
+  right: 10px;
+  bottom: 10px;
+  font-size: 20px;
 }
 
 #judge_result {
-  
+  padding: 3%;
+  text-align: center;
+  font-size: 35px;
+  border: solid 2px #333;
+}
+
+.fotter {
+  position: absolute;
+  margin-bottom: 1%;
+  margin-right: 1%;
+  bottom: 0;
+  right: 0;
 }
 </style>

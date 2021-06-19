@@ -1,6 +1,6 @@
 <template>
     <div class="fotter">
-        Created by ito.
+        Created by r-ito.
     </div>
 </template>
 

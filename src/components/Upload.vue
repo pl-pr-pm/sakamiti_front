@@ -1,14 +1,14 @@
 <template>
     <div name="upload">
-        <div name="start" v-if="this.warmStatus[this.warmStatus.length - 1] != 1">
-        <button id="activate_button" name="start_button" v-on:click="warmupLambda"> AI ACTIVATE (It may take a few minutes)</button>
+        <div name="start">
+        <button id="activate_button" name="start_button" v-on:click="warmupLambda" v-if="this.warmStatus[this.warmStatus.length - 1] != 1 && coldIsLoading != true"> AI ACTIVATE (It may take a few minutes)</button>
         <Loading :coldIsLoading = this.coldIsLoading id="activate_load"> Loading </Loading>
         </div>
         <div name="sorry_anotation" v-if="this.warmStatus[this.warmStatus.length - 1] == 9">
         <p id="sorry"> It looks like the AI hasn't started yet. Please Press the "AI ACTIVATE" button again.</p>
         <p id="annotation"> You may need to be repeated two or three times. </p>
         </div>
-        <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
+        <div name="predict" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
         <p> Please upload your face image.<br> </p>
         <!--<label for="file_upload">CHOSE YOUR IMAGE</label> -->
         <input  v-on:change="onFileChange" type="file" id="file_upload" name="file" placeholder="Photo from your computer" accept="image/*" required>
@@ -78,9 +78,11 @@ export default {
             let self = this;
             let preprocessHttpStatusCd = null;
             let predictionHttpStatusCd = null;
-            
+
             // 起動前状態を設定
             self.coldLoading()
+
+            //self.warmStatus.push(1);
 
             // preprocess, prediction 二つのリクエスト同時に非同期で実行する
             await Promise.all([postTarget(self.urls.preprocess_url), postTarget(self.urls.prediction_url)]).then(
