@@ -1,14 +1,18 @@
 <template>
     <div name="upload">
         <div name="start" v-if="this.warmStatus[this.warmStatus.length - 1] != 1">
-        <button name="start_button" v-on:click="warmupLambda"> AI 起動 (数分かかる場合があります)</button>
-        <Loading :coldIsLoading = this.coldIsLoading> Loading </Loading>
+        <button id="activate_button" name="start_button" v-on:click="warmupLambda"> AI ACTIVATE (It may take a few minutes)</button>
+        <Loading :coldIsLoading = this.coldIsLoading id="activate_load"> Loading </Loading>
         </div>
-        <p v-if="this.warmStatus[this.warmStatus.length - 1] == 9"> AI がまだ起動していないようです。再度、診断開始ボタンを押してください。</p>
+        <div name="sorry_anotation" v-if="this.warmStatus[this.warmStatus.length - 1] == 9">
+        <p id="sorry"> It looks like the AI hasn't started yet. Please Press the "AI ACTIVATE" button again.</p>
+        <p id="annotation"> You may need to be repeated two or three times. </p>
+        </div>
         <div name="button" v-if="this.warmStatus[this.warmStatus.length - 1] == 1">
-        <p> あなたの画像をアップロードしてください。<br> </p>
-        <input  v-on:change="onFileChange" type="file" name="file" placeholder="Photo from your computer" accept="image/*" required>
-        <button v-on:click="uploadImage"> Upload </button>
+        <p> Please upload your face image.<br> </p>
+        <!--<label for="file_upload">CHOSE YOUR IMAGE</label> -->
+        <input  v-on:change="onFileChange" type="file" id="file_upload" name="file" placeholder="Photo from your computer" accept="image/*" required>
+        <button v-on:click="uploadImage" id="upload_button"> UPLOAD </button>
         </div>
         <Modal :judgeStatus = this.judgeStatus :judgeResult = this.judgeResult :predictionIsLoading = this.predictionIsLoading>
         </Modal>
@@ -29,7 +33,7 @@ export default {
             warmStatus: [0],
             coldIsLoading: null,
             predictionIsLoading:null,
-            judgeStatus: "審査前",
+            judgeStatus: "Begin",
             judgeResult: null,
             urls: {
                 upload_url: targetURL.upload_url,
@@ -49,7 +53,7 @@ export default {
         },
         // dataの値のリセット
         reset: function() {
-            this.judgeStatus = "審査前",
+            this.judgeStatus = "Begin",
             this.judgeResult = null
         },
 
@@ -129,7 +133,7 @@ export default {
                 console.log(res.data);
                 if (res.status === 200) {
                     // file upload 完了
-                    self.judgeStatus = "審査員に画像を届けています";
+                    self.judgeStatus = "Judging ...";
                     const saved_file_path = JSON.parse(JSON.stringify(res.data));
                     console.log(saved_file_path.saved_file_path);
                     axios.post(self.urls.preprocess_url, saved_file_path.saved_file_path,{
@@ -139,7 +143,7 @@ export default {
             }).then(function(res) {
                 console.log(res);
                 if (res.status === 200) {
-                    self.judgeStatus = "審査を開始しています";
+                    self.judgeStatus = "Almost Judging...";
                     const output_file_path = JSON.parse(JSON.stringify(res.data));
                     console.log(output_file_path.output_file_path);
                     axios.post(self.urls.prediction_url, output_file_path.output_file_path,{
@@ -150,7 +154,7 @@ export default {
                         if(res.status === 200) {
                             // ロードを終了する
                             self.predictionFinish();
-                            self.judgeStatus = "審査が完了しました";
+                            self.judgeStatus = "Finished";
                             const judgeResult = JSON.parse(JSON.stringify(res.data));
                             self.judgeResult = judgeResult.predicted_group;
                         }

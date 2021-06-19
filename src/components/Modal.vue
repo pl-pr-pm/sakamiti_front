@@ -1,9 +1,9 @@
 <template>
     <div>
-        <modal name="result-modal" :draggable="true" :resizable="true" width="85%" height="70%">
-             <h1>{{ judgeStatus }}</h1>
-             <h1>{{ judgeResult }}</h1>
-        <Loading :predictionIsLoading = this.predictionIsLoading></Loading>
+        <modal name="result-modal" :draggable="true" :resizable="true" width="50%" height="60%">
+             <h1 id=judge_status>{{ judgeStatus }}</h1>
+             <h1 id=judge_result>{{ judgeResult }}</h1>
+        <Loading :predictionIsLoading = this.predictionIsLoading id="predict_load">></Loading>
         </modal>
     </div>
 </template>

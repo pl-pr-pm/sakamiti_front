@@ -1,11 +1,14 @@
 <template>
     <div id="explanation">
-        <p>
-        坂道グループバーチャルオーディション<br>
-        あなたの画像から、AIが乃木坂、日向坂、櫻坂のグループそれぞれに対してどの程度似ているかを診断します。<br>
+        <p id=title>
+        Sakamiti Group Virtual Audition
+        </p>
+        <p  id=comment>
+        AI diagnoses which group of Nogizaka, Hinatazaka, and Sakurazaka resembles from your image.
         </p>
     </div>
 </template>
 
 <style >
+
 </style>
