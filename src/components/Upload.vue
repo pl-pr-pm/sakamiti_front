@@ -155,7 +155,8 @@ export default {
                     axios.post(self.urls.prediction_url, output_file_path.output_file_path,{
                         headers: {
                     "Content-Type": 'application/json'
-                    }}).then(function(res) {
+                        }
+                    }).then(function(res) {
                         console.log(res);
                         if(res.status === 200) {
                             // ロードを終了する
@@ -163,22 +164,23 @@ export default {
                             self.judgeStatus = "Finished";
                             const judgeResult = JSON.parse(JSON.stringify(res.data));
                             self.judgeResult = judgeResult.predicted_group;
-                        }
+                            }
+                        }).catch(function(error){
+                            console.log('prediction function', error);
+                            self.judgeStatus = "Prediction failed. Please close this modal.";
+                        });
+                    }
                     }).catch(function(error){
-                        console.log('prediction function', error);
-                        self.judgeStatus = "Prediction failed. Please close this modal.";
+                        console.log('preprocess function', error);
+                        self.judgeStatus = "Preprocess failed. Please close this modal.";
                     });
                 }
             }).catch(function(error){
-                console.log('preprocess function', error);
-                self.judgeStatus = "Preprocess failed. Please close this modal.";
-            });
+                console.log('upload function', error);
+                self.judgeStatus = "Upload failed. Please close this modal.";
+            })
         }
-    }).catch(function(error){
-        console.log('upload function', error);
-        self.judgeStatus = "Upload failed. Please close this modal.";
-    })}
-        },
+    },
     components: {
         Modal,
         Loading
