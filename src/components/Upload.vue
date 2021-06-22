@@ -111,6 +111,10 @@ export default {
             this.uploadFile = event.target.files[0];
             console.log(this.uploadFile);
         },
+        
+        //以下、解消できたら良いなぁ
+        //・ネストなので、可読性が低い
+        //・サーバサイドのエラーごとのハンドリングができていない（一律モーダル閉じて・・）
         uploadImage: function(){
             // thisの参照スコープからselfにthisを代入する
             // https://stackoverflow.com/questions/32547735/javascript-promises-how-to-access-variable-this-inside-a-then-scope#
@@ -160,12 +164,20 @@ export default {
                             const judgeResult = JSON.parse(JSON.stringify(res.data));
                             self.judgeResult = judgeResult.predicted_group;
                         }
+                    }).catch(function(error){
+                        console.log('prediction function', error);
+                        self.judgeStatus = "Prediction failed. Please close this modal.";
                     });
                 }
+            }).catch(function(error){
+                console.log('preprocess function', error);
+                self.judgeStatus = "Preprocess failed. Please close this modal.";
             });
         }
-    }
-            )}
+    }).catch(function(error){
+        console.log('upload function', error);
+        self.judgeStatus = "Upload failed. Please close this modal.";
+    })}
         },
     components: {
         Modal,
