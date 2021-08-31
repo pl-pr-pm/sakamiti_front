@@ -133,7 +133,8 @@ export default {
 
             axios.post(upload_url, targetFile, {
                 headers: {
-                    "Content-Type": targetFile.type
+                    "Content-Type": targetFile.type,
+                    "Authorization": ''
                 }
             }).then(function(res) {
                 console.log(res.data);
@@ -144,7 +145,8 @@ export default {
                     console.log(saved_file_path.saved_file_path);
                     axios.post(self.urls.preprocess_url, saved_file_path.saved_file_path,{
                         headers: {
-                    "Content-Type": 'application/json'
+                    "Content-Type": 'application/json',
+                    "Authorization": ''
                 }
             }).then(function(res) {
                 console.log(res);
@@ -154,7 +156,8 @@ export default {
                     console.log(output_file_path.output_file_path);
                     axios.post(self.urls.prediction_url, output_file_path.output_file_path,{
                         headers: {
-                    "Content-Type": 'application/json'
+                    "Content-Type": 'application/json',
+                    "Authorization": ''
                         }
                     }).then(function(res) {
                         console.log(res);

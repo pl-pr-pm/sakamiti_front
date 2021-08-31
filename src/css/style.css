@@ -1,3 +1,9 @@
-template {
+body {
     background-image: url(image/prediction_idle_desktop.jpg);
+    background-size: contain;
+
+    width:max-content;
+    height: max-content;
+
+    margin-top: 100px;
 }

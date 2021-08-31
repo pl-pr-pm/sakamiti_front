@@ -6,7 +6,8 @@ export async function postTarget(target_url) {
 
 await axios.post(target_url, null,{
     headers: {
-        "Content-Type": 'application/json'
+        "Content-Type": 'application/json',
+        "Authorization": ''
     }
 }).then(function(res) {
     console.log('axios response', res);
